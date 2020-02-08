@@ -1,0 +1,435 @@
+<html>
+<head>
+    <title>Treasury Yield Curve</title>
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400&display=swap" rel="stylesheet">
+
+
+    <style>
+        @import url('https://fonts.googleapis.com/css?family=Roboto:Bold,Thin,Regular');
+
+
+        h1 {
+            padding-top:  50px;
+            padding-left:  50px;
+            font-family: 'Open Sans', sans-serif;
+            font-weight: 300;
+            font-size: 50;
+            color:  #1E88E5 ;
+        }
+        
+        h2{
+            padding-left:  50px;
+            padding-right:  50px;
+            font-family: 'Open Sans', sans-serif;
+            font-weight: 300;
+            font-size: 14px;
+            padding-left:  50px;
+        }
+        
+        p {
+            font-family: 'Open Sans', sans-serif;
+            font-weight: 300;
+            font-size: 14px;
+
+        }
+        
+        .wrapper {
+            width: 1200px;
+            margin-left: 0;
+            margin-top: 10px;
+        }
+        
+        .visualization {
+            margin: auto;
+            width: 1100px;
+            height: 500;
+            background-color: white;
+            float:left;
+        }
+        
+        .svgSpace{
+            margin-left: 20px;
+        }
+        
+        .graphTitle {
+            margin-left: 0px;
+            float: left;
+        }
+        .buttons {
+            width: 100px;
+            margin-top: 320px;
+            margin-left: -100px;
+        }
+        
+        #firstOption, #secondOption {
+        width: 100px;
+        background-color: white;
+        font-size: 16px;
+        font-family: sans-serif;
+        color:  #5D6D7E;
+        margin: 10;
+        border: 1px solid #aaa;
+
+        }
+        
+        .buttonTitle
+        {
+            color:#A6ACAF;
+            
+        }
+        .axis text{ 
+            font: 8px sans-serif;
+            fill: #909497;
+            margin: 10px;
+        }
+        
+        .axis path{
+        stroke: white;
+        }
+        
+        .axisBot path{
+        stroke: white;
+        margin: 10px;
+        }
+        .axisBot text{ 
+            font: 8px sans-serif;
+            fill: #909497;
+        }
+        .footer {
+          position: fixed;
+          left: 0;
+          bottom: 0;
+          width: 100%;
+          background-color:#F8F9F9;
+          color:#2E4053;
+          text-align: left;}
+         .footer p{
+          margin-left: 50px;
+        
+        
+    </style>
+</head>
+    
+<body>
+<div>
+    <h1>Treasury Yield Curve</h1>
+    <h2>What's in a curve? A yield curve is a line that plots yields (interest rates) of bonds having equal credit quality but differing maturity dates. The slope of the yield curve gives an idea of future interest rate changes and economic activity. </h2>
+    <h2>One of the most popular ways to measure these changes is to measure the difference between the yields on the 2- and 10-year Treasury notes. When the line dips below zero, it means that the yield curve is “inverted” — or in other words, a rare case where short-term bonds are yielding more than their longer-term counterparts. Over the past three recessions, when the result turns negative the economy has entered a recession 8 to 13 months later all three times since 1990.</h2>
+</div>
+    
+<div class = "wrapper">
+<div class = "visualization"></div>  
+<div class = "graphTitle"> 
+
+<div class = "buttons">
+
+<select id="secondOption" onChange="drawStuff()"> 
+    <option value="10 Yr" selected>10 Year</option>
+    <option value="20 Yr">20 Year</option>
+    <option value="30 Yr">30 Year</option>
+</select>
+    
+<select id="firstOption" onChange="drawStuff()">
+    <option value="1 Mo" >1 Month</option>
+    <option value="2 Mo" >2 Month</option>
+    <option value="3 Mo">3 Month</option>
+    <option value="6 Mo">6 Month</option>
+     <option value="1 Yr" >1 Year</option>
+    <option value="2 Yr" selected>2 Year</option>
+</select>
+
+        
+
+
+</div>
+</div>
+<div class = "footer">
+    <p>Data Source: <a href = "https://www.treasury.gov/resource-center/data-chart-center/interest-rates/Pages/TextView.aspx?data=yield">U.S. Department of Treasury</a></p>
+</div>
+    
+<script>
+    
+    var yieldData;
+    
+    // Set up SVG Space
+    var width = 500;
+    var height = 500;
+    var tickLabels = ["1 Mo", "2 Mo", "3 Mo", "6 Mo", "1 Yr", "2 Yr", "3 Yr", "5 Yr", "7 Yr", "10 Yr", "20 Yr", "30 Yr"];
+    
+    var svg = d3.select(".visualization").append("svg")
+            .attr("class", "svgSpace")
+            .attr("width", width)
+            .attr("height", height)
+            .style("background-color", "white")
+    
+    xScale = d3.scaleLinear()
+        .domain( [0, 11] )
+        .range( [100,width-50] );
+        
+    yScale = d3.scaleLinear()
+        .domain( [0, 4])
+        .range( [height-100, 100]);
+    
+    var y_axis = d3.axisLeft().scale(yScale).tickSize(0).ticks(6)
+    var x_axis = d3.axisBottom().scale(xScale).ticks(11).tickSize(0)
+    x_axis.tickFormat((d,i) => tickLabels[i]);
+    
+    svg.append("g")
+        .attr("transform", "translate(0, 410)")
+        .call(x_axis)
+        .attr("class", "axisBot")
+    svg.append("g")
+        .attr("transform", "translate(90, 0)")
+        .call(y_axis)
+        .attr("class", "axis")
+    svg.append("text")
+        .text("Daily Treasury Yield Curve Rates (2019)")
+        .attr("x", xScale(0))
+        .attr("y", 50)
+        .attr("fill", "#A6ACAF")
+    svg.append("text")
+        .text("Bond Maturity")
+        .attr("x", 250)
+        .attr("y", 450)
+        .attr("font-size", "10")
+        .attr("fill", "#A6ACAF")
+     svg.append("text")
+        .text("Yield %")
+        .attr("x", -250)
+        .attr("y", 50)
+        .attr("font-size", "10")
+        .attr("fill", "#A6ACAF")
+        .attr("transform", "rotate(270)")
+    
+    
+    // Set up spread % svg
+    var svgSpread = d3.select(".visualization").append("svg")
+            .attr("class", "svgSpace")
+            .attr("width", width)
+            .attr("height", height)
+            .style("background-color", "white")
+    
+    xScale2 = d3.scaleLinear()
+        .domain( [0, 251])
+        .range( [100,width-50] );
+        
+    yScale2 = d3.scaleLinear()
+        .domain( [-.2, .5])
+        .range( [height-100, 100]);
+    
+    var y_axis2 = d3.axisLeft().scale(yScale2).tickSize(0);
+    var x_axis2 = d3.axisBottom().scale(xScale2).tickSize(0)
+    
+    svgSpread.append("g")
+        .attr("transform", "translate(0, 410)")
+        .call(x_axis2)
+        .attr("class", "axisBot")
+    
+    svgSpread.append("g")
+        .attr("transform", "translate(90, 0)")
+        .call(y_axis2)
+        .attr("class", "axis")
+    svgSpread.append("rect")
+        .attr("x", 100)
+        .attr("y", yScale2(0))
+        .attr("width", width-150)
+        .attr("height", yScale2(0)-220)
+        .attr("fill", "#FDEDEC")
+        .attr("opacity", ".5")
+    
+    svgSpread.append("line")
+        .attr("x1", xScale2(0))
+        .attr("x2", xScale2(251))
+        .attr("y1", yScale2(0))
+        .attr("y2", yScale2(0))
+        .attr("stroke", "#EC7063")
+        .style("stroke-dasharray", ("6, 6"))
+    svgSpread.append("text")
+        .text("Date")
+        .attr("x", 250)
+        .attr("y", 450)
+        .attr("font-size", "10")
+        .attr("fill", "#A6ACAF")
+     svgSpread.append("text")
+        .text("Spread %")
+        .attr("x", -250)
+        .attr("y", 50)
+        .attr("font-size", "10")
+        .attr("fill", "#A6ACAF")
+        .attr("transform", "rotate(270)")
+    svgSpread.append("text")
+        .text("Treasury Yield Spread")
+        .attr("x", xScale2(0))
+        .attr("y", 50)
+        .attr("fill", "#A6ACAF")
+        
+ 
+    // Parse function to pull data columns
+    var structured = [];
+    
+    function parseLine(line) {
+        return {
+        date: new Date(line["Date"]),
+        Mo1: Number(line["1 Mo"]),
+        Mo2: Number(line["2 Mo"]),
+        Mo3: Number(line["3 Mo"]),
+        Mo6: Number(line["6 Mo"]),
+        Yr1: Number(line["1 Yr"]),
+        Yr2: Number(line["2 Yr"]),
+        Yr3: Number(line["3 Yr"]),
+        Yr5: Number(line["5 Yr"]),
+        Yr7: Number(line["7 Yr"]),
+        Yr10: Number(line["10 Yr"]),
+        Yr20: Number(line["20 Yr"]),
+        Yr30: Number(line["30 Yr"])
+    }};
+    
+    // Create & update line functions
+    var dynamicLine;
+
+    var line = d3.line()
+        .x(function(d, i) { return xScale(i); })
+        .y(function(d, i) { return yScale(d); });
+    
+    var line2 = d3.line()
+        .x(function(d, i) { return xScale2(i); })
+        .y(function(d, i) { return yScale2(d); });
+    
+    function updateLineChart(dataset, color) {
+        svg.selectAll(".line")
+            .attr("opacity", "0.1")
+            .attr("fill", "#EBEDEF")
+            .attr("stroke-width", "2")
+        
+        svg.append("path")
+            .attr('class', 'line')
+            .attr("d", line(dataset.timeseries))
+            .attr("stroke", "#3498DB")
+            .attr("stroke-width", "2")
+            .attr("fill", "none")
+        
+        var currentDate = dataset.id;
+         var date = currentDate.getDate();
+         var month = currentDate.getMonth(); 
+         var year = currentDate.getFullYear();
+         
+        dynamicText.text((month+1) + "/" + date + "/" + year)
+         
+    }
+    
+    function update(year, color){
+        updateLineChart(structured[year], color);
+     }
+    
+    var spreadValues;
+    var currentSpread
+    
+    function getSpreadPercentage(d1, d2) {
+        t1 = tickLabels.indexOf(d1);
+        t2 = tickLabels.indexOf(d2);
+        
+        spreadValues = [];
+        
+        structured.forEach(function(d){
+            v1 = d.timeseries[t1]
+            v2 = d.timeseries[t2]
+            
+            spread = (v2-v1)/v1;
+            spreadValues.push(spread)
+        })
+        return spreadValues;
+        
+    }
+    
+    
+    
+    function drawStuff() {
+        var menu1 = document.getElementById("firstOption");
+        var menu2 = document.getElementById("secondOption");
+        
+        var selected1 = menu1.addEventListener("change", generateData);
+        var selected2 = menu2.addEventListener("change", generateData);
+
+    function generateData(event){
+        spreadValues = getSpreadPercentage(menu1.value, menu2.value);
+            
+        svgSpread.selectAll(".line2")
+                .transition()
+                .duration(500)
+                .attr('class', 'line2')
+                .attr("d", line2(spreadValues))
+                .attr("stroke", "#3498DB")
+                .attr("stroke-width", "2")  
+                .attr("fill", "none")
+        };
+        
+        dynamicText2.text(menu2.value + "-" + menu1.value)
+
+    }
+    
+     d3.csv("Daily Treasury Yield Curve 2019.csv", parseLine, function(error,data){
+        yieldData = data;  
+        yieldData.forEach(function(d){
+            dateValues = {
+                id:d.date, 
+                timeseries: [d.Mo1, d.Mo2, d.Mo3, d.Mo6, d.Yr1, d.Yr2, d.Yr3, d.Yr5, d.Yr7, d.Yr10, d.Yr20, d.Yr30]}
+            structured.push(dateValues);
+        });
+         
+     // Add the valueline path.
+    dynamicLine = this.svg.append("path")
+            .attr('class', 'line')
+            .attr("d", line(structured[0].timeseries))
+            .attr("stroke", "#3498DB")
+            .attr("stroke-width", "5")  
+            .attr("fill", "none")
+         
+    var currentDate = structured[0].id;
+         var date = currentDate.getDate();
+         var month = currentDate.getMonth(); 
+         var year = currentDate.getFullYear();
+         
+    dynamicText = this.svg.append("text")
+                    .text((month+1) + "/" + date + "/" + year)
+                    .attr("x", xScale(0))
+                    .attr("y", 70)
+                    .attr("fill", "#1E88E5")
+         
+    dynamicText2 = this.svgSpread.append("text")
+                    .text("10 Yr" + "-" + "2 Yr")
+                    .attr("x", xScale(0))
+                    .attr("y", 70)
+                    .attr("fill", "#1E88E5")
+         
+         
+    // Spread Visualization
+    // Default: 2mo by 10year
+    currentSpread = getSpreadPercentage("2 Yr", "10 Yr");
+         
+    svgSpread.append("path")
+            .attr('class', 'line2')
+            .attr("d", line2(currentSpread))
+            .attr("stroke", "#3498DB")
+            .attr("stroke-width", "2")  
+            .attr("fill", "none")
+    
+     });
+
+
+    
+    // Simulation
+    i = 0;
+    var sim = setInterval(function() {
+        update(i);
+        i = i + 1;
+        if (i > 249){ 
+                clearInterval(sim); }
+        }, 20);
+        
+
+</script>
+
+
+</body>
+</html>
